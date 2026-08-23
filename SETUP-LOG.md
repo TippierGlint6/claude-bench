@@ -11,6 +11,7 @@ Written 2026-08-22, at the end of the session that built this repo from scratch.
 - **Post-Phase-3** — added a fourth server, `obsidian`, after Phase 3 was already live and pushed.
 - **Post-Phase-3, second addition** — added a fifth server, `manim` (3Blue1Brown-style animations), which required installing Docker Desktop system-wide first.
 - **Post-Phase-3, third addition** — added four general coding-productivity servers (not physics-specific): `repomix`, `context7`, `playwright`, `github`. All four smoke-tested successfully before being handed off.
+- **Post-Phase-3, sixth plugin** — audited every skill collection already present on the machine and added `numerical-methods`: 14 computational-physics skills vendored from `heshamfs/materials-simulation-skills` (Apache-2.0). See "Local skill audit" below for what was rejected and why.
 - **Post-Phase-3, fifth plugin** — added `visual-explain`: two skills (`step-work`, `visual`) and six reference playbooks. No MCP servers, so it works on every surface including plain claude.ai chat. Built after prototyping the widget behaviour interactively across several iterations (term-level FLIP motion, colour-coded operators, fresh-term highlighting, transcript, multi-method tabs and compare mode, graph panel, toggles, export). The prototypes are the reference implementation the skill encodes.
 - **Post-Phase-3, restructure** — split the single `claude-bench-plugin` into four separate plugins (`physics-core`, `knowledge-tools`, `manim-viz`, `coding-tools`), after a performance review found that Claude Code has no per-server enable/disable — only per-plugin. With everything in one plugin, the heavy Docker-based servers (`manim`, `github`) always started alongside lightweight ones. See "Why four plugins" in README for the full reasoning; see "Restructure migration notes" below for exactly what moved.
 
@@ -63,6 +64,20 @@ Each plugin's `plugin.json` version starts fresh at `1.0.0` (the old single-plug
 /plugin install coding-tools@claude-bench
 ```
 Needs `uv` on that machine for the arxiv/sympy servers, and (if you want them live) Zotero running with local API enabled and/or Obsidian running with the "Local REST API with MCP" plugin enabled (plus `OBSIDIAN_API_KEY` set — see the MCP servers table below).
+
+## Local skill audit (2026-08-23)
+
+Enumerated everything skill-shaped on the machine and decided what belonged in this repo. Recording the rejections so nobody re-litigates them.
+
+| Source | Size | Decision |
+|---|---|---|
+| `~/materials-simulation-skills` (Apache-2.0) | 1.6 MB, 17 skills | **Vendored 14** into `numerical-methods`. Excluded the 3 `ontology` skills — materials-informatics specific, not applied physics. |
+| `~/claude-scientific-skills` (MIT) | 22 MB, 177 skills | **Not vendored.** It's already a valid marketplace, so it should be *added* as one, not copied. ~90% is bio/pharma database tooling; the physics-relevant handful (`qutip`, `qiskit`, `astropy`) mostly overlaps `physics-core`. Documented in README as an opt-in marketplace. |
+| `~/.agents/skills/tutor`, `tutor-setup` | small | **Left in place.** Obsidian StudyVault + quizzing from `RoundTable02/tutor-skills`, installed via skills.sh into `~/.agents/skills/` — a shared location multiple AI tools read. Vendoring it here would create a second copy that drifts. |
+| `~/.agents/skills/vercel-*`, `web-design-guidelines`, `deploy-to-vercel`, `claude-handoff`, `plugin-structure` | small | **Not relevant** to a physics toolkit. Left installed machine-wide; they cost nothing here. |
+| `jira`, `google-drive`, `claude-tag-troubleshoot` (plugin-provided) | — | Not relevant. |
+
+**Flattening note:** upstream nests skills two deep (`skills/<group>/<skill>/SKILL.md`) but Claude Code's default discovery scans one level. The group directories were flattened away during the copy; skill contents are unmodified. Verified afterwards that all 14 `SKILL.md` files sit exactly one level under `skills/`. Also grepped the vendored tree for hardcoded absolute paths and secret-shaped strings before committing — clean.
 
 ## `visual-explain` design notes
 

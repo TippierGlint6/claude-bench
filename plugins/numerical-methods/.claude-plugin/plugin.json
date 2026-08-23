@@ -1,0 +1,9 @@
+{
+  "name": "numerical-methods",
+  "displayName": "Numerical Methods",
+  "description": "Computational physics skills: numerical stability, solvers, time-stepping, convergence studies, and simulation workflow. Vendored from heshamfs/materials-simulation-skills (Apache-2.0)",
+  "version": "1.0.0",
+  "author": {
+    "name": "Riley"
+  }
+}

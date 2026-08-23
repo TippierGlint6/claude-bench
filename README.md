@@ -38,6 +38,7 @@ This started as the smallest version that works — one marketplace, one plugin,
 | `physics-core` | `derivation-check` skill, `arxiv`, `sympy` | **ON** — lightweight, always relevant |
 | `knowledge-tools` | `zotero`, `obsidian` | **ON** — central to the literature/notes workflow this repo exists for |
 | `visual-explain` | `step-work` and `visual` skills | **ON** — skills only, no servers, so it costs nothing to leave enabled |
+| `numerical-methods` | 14 computational-physics skills | **OFF** — specialised; enable when doing simulation or numerical work |
 | `manim-viz` | `manim` | **OFF** — the heaviest single item (3+ GB Docker image), clearly opt-in |
 | `coding-tools` | `repomix`, `context7`, `playwright`, `github` | **OFF** — general software engineering, not physics-specific |
 
@@ -84,6 +85,18 @@ That split is deliberate: only the small router file costs context every session
 |---|---|---|
 | `zotero` | Search your Zotero library, including PDF highlights/annotations | The Zotero desktop app must be running, with **Settings → Advanced → "Allow other applications on this computer to communicate with Zotero"** turned on |
 | `obsidian` | Read, write, and search your Obsidian vault | The Obsidian desktop app must be running, with the **"Local REST API with MCP"** community plugin installed and enabled, its **"Enable Non-encrypted (HTTP) Server"** setting turned on, and an `OBSIDIAN_API_KEY` environment variable set (never stored in this repo — see Secrets below) |
+
+### `numerical-methods`
+
+Fourteen computational-physics skills, vendored unmodified from [heshamfs/materials-simulation-skills](https://github.com/heshamfs/materials-simulation-skills) under Apache-2.0 — see `plugins/numerical-methods/NOTICE.md` for exactly what was taken, what was left behind, and why.
+
+| Group | Skills |
+|---|---|
+| Numerical core | `numerical-stability` (CFL, von Neumann analysis, stiffness), `time-stepping`, `linear-solvers`, `nonlinear-solvers`, `numerical-integration`, `differentiation-schemes`, `convergence-study`, `mesh-generation` |
+| Simulation workflow | `simulation-orchestrator`, `simulation-validator`, `parameter-optimization`, `post-processing`, `performance-profiling` |
+| HPC | `slurm-job-script-generator` |
+
+Default OFF because 14 skill descriptions is real context cost for something you only want during simulation work. Enable with `/plugin enable numerical-methods@claude-bench` when it's relevant.
 
 ### `manim-viz`
 
@@ -209,6 +222,23 @@ This opens the plugin manager view — each installed plugin should be listed wi
 Claude Code doesn't support enabling or disabling individual MCP servers within a plugin — the docs are explicit that servers "start automatically when the plugin is enabled," all or nothing. With everything in one plugin, `manim` (a 3+ GB Docker container) and `github` (Docker again) always spun up alongside lightweight things like `arxiv`, whether or not that session actually needed them. Splitting into four separate plugins, each with its own `plugin.json` and `.mcp.json`, makes the heavy/situational ones (`manim-viz`, `coding-tools`) genuinely opt-in via `/plugin enable`/`/plugin disable`, while the lightweight always-useful ones (`physics-core`, `knowledge-tools`) stay on by default.
 
 This is a separate concern from **tool search** — Claude Code's default behavior of deferring MCP tool *schemas* until actually needed, regardless of how many servers are connected. Tool search already keeps context-window cost low; this plugin split is about not *connecting* servers (and paying their startup/runtime cost) unless you actually want them that session.
+
+## Companion skills, deliberately *not* vendored
+
+Two useful collections live outside this repo on purpose. Both are already installed on the original machine; on a new one, install them separately.
+
+**`tutor` / `tutor-setup`** — turns source material into an Obsidian StudyVault and quizzes you against it, with weak-area drilling and progress tracking. This is the spaced-repetition half of the workflow this repo exists to support, but it's an independent project ([RoundTable02/tutor-skills](https://github.com/RoundTable02/tutor-skills)) that installs machine-wide via skills.sh rather than through a plugin:
+```powershell
+npx skills add RoundTable02/tutor-skills
+```
+It lands in `~/.agents/skills/`, a shared location several AI tools read, so one copy serves all of them — which is why duplicating it here would be a step backwards.
+
+**`claude-scientific-skills`** ([K-Dense-AI](https://github.com/K-Dense-AI/claude-scientific-skills), MIT) — 177 skills, and it's already a valid marketplace in its own right, so add it as one rather than copying 22 MB in:
+```
+/plugin marketplace add K-Dense-AI/claude-scientific-skills
+/plugin install scientific-skills@claude-scientific-skills
+```
+Worth knowing before you do: roughly ninety percent of it is biology and pharma database tooling. The genuinely physics-adjacent entries are `qutip`, `qiskit`, `astropy`, `sympy`, `matplotlib`, `plotly`, and `arxiv-database` — and the last four already overlap what `physics-core` and `visual-explain` cover. Enable it when you specifically want the quantum or astronomy skills, not by default.
 
 ## What's deliberately not here yet
 

@@ -24,6 +24,12 @@
       "defaultEnabled": true
     },
     {
+      "name": "numerical-methods",
+      "source": "./plugins/numerical-methods",
+      "description": "Computational physics: stability analysis, solvers, time-stepping, convergence, and simulation workflow",
+      "defaultEnabled": false
+    },
+    {
       "name": "manim-viz",
       "source": "./plugins/manim-viz",
       "description": "3Blue1Brown-style math and physics animations, via Docker",
