@@ -18,6 +18,12 @@
       "defaultEnabled": true
     },
     {
+      "name": "visual-explain",
+      "source": "./plugins/visual-explain",
+      "description": "Animated step-by-step algebra plus a router that picks the right diagram, plot, or 3D render for the problem",
+      "defaultEnabled": true
+    },
+    {
       "name": "manim-viz",
       "source": "./plugins/manim-viz",
       "description": "3Blue1Brown-style math and physics animations, via Docker",

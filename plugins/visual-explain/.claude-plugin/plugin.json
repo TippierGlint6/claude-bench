@@ -1,0 +1,9 @@
+{
+  "name": "visual-explain",
+  "displayName": "Visual Explain",
+  "description": "Shows mathematical and scientific work visually: animated step-by-step manipulation, and a router that picks the right diagram, plot, or 3D render for the problem",
+  "version": "1.0.0",
+  "author": {
+    "name": "Riley"
+  }
+}

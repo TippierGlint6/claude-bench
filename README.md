@@ -37,6 +37,7 @@ This started as the smallest version that works — one marketplace, one plugin,
 |---|---|---|
 | `physics-core` | `derivation-check` skill, `arxiv`, `sympy` | **ON** — lightweight, always relevant |
 | `knowledge-tools` | `zotero`, `obsidian` | **ON** — central to the literature/notes workflow this repo exists for |
+| `visual-explain` | `step-work` and `visual` skills | **ON** — skills only, no servers, so it costs nothing to leave enabled |
 | `manim-viz` | `manim` | **OFF** — the heaviest single item (3+ GB Docker image), clearly opt-in |
 | `coding-tools` | `repomix`, `context7`, `playwright`, `github` | **OFF** — general software engineering, not physics-specific |
 
@@ -54,6 +55,28 @@ Toggle any of them per session with `/plugin enable <name>@claude-bench` or `/pl
 |---|---|---|
 | `arxiv` | Search and read papers from arXiv | Nothing extra — `uvx` fetches it on first use |
 | `sympy` | Symbolic math (algebra, calculus, some GR) | Nothing extra — bundled in `servers/sympy-mcp/`, `uv` builds an isolated environment automatically |
+
+### `visual-explain`
+
+Two skills, no MCP servers — pure instructions, which means this one works on **every** surface including plain claude.ai chat, unlike the server-backed plugins.
+
+**`step-work`** renders multi-step algebraic manipulation as an animated step-through: individual terms glide from their old position to their new one (browser FLIP, the same idea as Manim's `TransformMatchingTex`), operators are colour-coded by kind while terms stay neutral, newly introduced terms enter highlighted and cool to neutral, and a running transcript logs every operation. It names the **hinge step** — the one move that required judgement rather than bookkeeping — and when a problem admits several methods it presents them as switchable tabs with a note on when to reach for each, plus a side-by-side compare mode. Fires on genuine multi-step work only, not arithmetic or definitions.
+
+**`visual`** is a router, not a renderer. It decides *whether* a visual helps at all (staying quiet is a valid output), *which* visual the problem calls for, and *which mechanism* draws it — hand-authored SVG for free-body diagrams, circuits, ray diagrams and Lewis structures; Plotly for plots, surfaces and fields; 3Dmol or JSXGraph for molecules and constructions; Manim when the user wants a saved video instead.
+
+```
+skills/visual/
+├── SKILL.md                    # the routing table and the skip rule — loads every session
+└── references/                  # loaded on demand, only when that family is needed
+    ├── widget-contract.md       # shared colours, theming, a11y, streaming, export
+    ├── plotting.md
+    ├── diagrams-physics.md
+    ├── chemistry.md
+    ├── geometry-3d.md
+    └── fallbacks.md             # what to do on surfaces that can't render widgets
+```
+
+That split is deliberate: only the small router file costs context every session, and the detailed playbooks load when a given domain actually comes up.
 
 ### `knowledge-tools`
 
@@ -151,6 +174,7 @@ On a **new machine**, this repo is hosted at **https://github.com/TippierGlint6/
 /plugin marketplace add TippierGlint6/claude-bench
 /plugin install physics-core@claude-bench
 /plugin install knowledge-tools@claude-bench
+/plugin install visual-explain@claude-bench
 ```
 `manim-viz` and `coding-tools` are opt-in — install them the same way whenever you actually want them:
 ```

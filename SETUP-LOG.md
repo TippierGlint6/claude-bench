@@ -11,6 +11,7 @@ Written 2026-08-22, at the end of the session that built this repo from scratch.
 - **Post-Phase-3** — added a fourth server, `obsidian`, after Phase 3 was already live and pushed.
 - **Post-Phase-3, second addition** — added a fifth server, `manim` (3Blue1Brown-style animations), which required installing Docker Desktop system-wide first.
 - **Post-Phase-3, third addition** — added four general coding-productivity servers (not physics-specific): `repomix`, `context7`, `playwright`, `github`. All four smoke-tested successfully before being handed off.
+- **Post-Phase-3, fifth plugin** — added `visual-explain`: two skills (`step-work`, `visual`) and six reference playbooks. No MCP servers, so it works on every surface including plain claude.ai chat. Built after prototyping the widget behaviour interactively across several iterations (term-level FLIP motion, colour-coded operators, fresh-term highlighting, transcript, multi-method tabs and compare mode, graph panel, toggles, export). The prototypes are the reference implementation the skill encodes.
 - **Post-Phase-3, restructure** — split the single `claude-bench-plugin` into four separate plugins (`physics-core`, `knowledge-tools`, `manim-viz`, `coding-tools`), after a performance review found that Claude Code has no per-server enable/disable — only per-plugin. With everything in one plugin, the heavy Docker-based servers (`manim`, `github`) always started alongside lightweight ones. See "Why four plugins" in README for the full reasoning; see "Restructure migration notes" below for exactly what moved.
 
 ## Repo layout
@@ -28,6 +29,13 @@ claude-bench/
 │   ├── knowledge-tools/             # default ON
 │   │   ├── .claude-plugin/plugin.json
 │   │   └── .mcp.json                # zotero, obsidian
+│   ├── visual-explain/              # default ON — skills only, no servers
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── skills/
+│   │       ├── step-work/SKILL.md    # animated algebraic manipulation
+│   │       └── visual/
+│   │           ├── SKILL.md          # the visual router (small, always loaded)
+│   │           └── references/       # 6 playbooks, loaded on demand
 │   ├── manim-viz/                   # default OFF
 │   │   ├── .claude-plugin/plugin.json
 │   │   ├── .mcp.json                # manim
@@ -55,6 +63,17 @@ Each plugin's `plugin.json` version starts fresh at `1.0.0` (the old single-plug
 /plugin install coding-tools@claude-bench
 ```
 Needs `uv` on that machine for the arxiv/sympy servers, and (if you want them live) Zotero running with local API enabled and/or Obsidian running with the "Local REST API with MCP" plugin enabled (plus `OBSIDIAN_API_KEY` set — see the MCP servers table below).
+
+## `visual-explain` design notes
+
+Worth knowing before changing it, since these were deliberate and non-obvious:
+
+- **Progressive disclosure.** `skills/visual/SKILL.md` holds only the routing table and the skip rule, so it stays cheap to load every session. The six `references/*.md` playbooks load only when that family actually comes up. Keep the router small; put detail in references.
+- **The skip rule is load-bearing.** The router is explicitly instructed that producing *no* visual is a valid, frequently-correct output. A router that always renders is worse than one that stays quiet.
+- **Term identity drives the animation.** In `step-work`, the same `\htmlId{t-NAME}` across consecutive steps means "same term" and triggers a glide between positions. Reusing an id for a conceptually different term produces a *misleading* animation, so the skill is strict about this.
+- **Downloads are blocked** by the viewer sandbox — `<a download>`, blob URLs, and script-driven saves are all inert. Export therefore shows copyable code plus a `sendPrompt` button asking Claude to write the real file with its own tools. Do not "fix" this by adding a download link; it will fail silently.
+- **Verification is optional by design.** `step-work` uses `sympy` (from `physics-core`) to check steps when available, but degrades gracefully without it — and is instructed never to claim verification that did not happen. This is what keeps the skill usable in plain chat.
+- **Known-good CDN pins:** KaTeX `0.16.9`, Plotly `2.27.0`, both from `cdnjs.cloudflare.com`. Only allowlisted hosts load; everything else fails silently, so guards are mandatory.
 
 ## Restructure migration notes
 
