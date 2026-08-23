@@ -1,0 +1,29 @@
+# OS-generated junk files
+.DS_Store
+Thumbs.db
+
+# Local, machine-specific Claude settings -- never commit these, they're personal to one machine
+.claude/settings.local.json
+
+# Secrets and environment variables -- never commit these, they're where API keys/passwords would live
+.env
+.env.local
+*.pem
+*.key
+
+# Plugin/marketplace caches that Claude Code generates on install -- these regenerate automatically, don't belong in the repo
+.claude-plugin-cache/
+*.cache/
+
+# Editor and IDE clutter
+.vscode/
+.idea/
+
+# Common script byproducts, in case future skills/hooks add Python or Node code
+__pycache__/
+*.pyc
+node_modules/
+
+# Per-machine Python virtual environments created by uv when running bundled MCP servers
+.venv/
+*/.venv/

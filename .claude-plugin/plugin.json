@@ -1,0 +1,9 @@
+{
+  "name": "claude-bench-plugin",
+  "displayName": "Claude Bench",
+  "description": "Personal physics study tools, starting with a step-by-step derivation checker",
+  "version": "0.4.0",
+  "author": {
+    "name": "Riley"
+  }
+}

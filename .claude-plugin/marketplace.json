@@ -1,0 +1,14 @@
+{
+  "name": "claude-bench",
+  "owner": {
+    "name": "Riley"
+  },
+  "description": "Personal collection of Claude Code plugins for physics study and research tooling",
+  "plugins": [
+    {
+      "name": "claude-bench-plugin",
+      "source": "./",
+      "description": "Study tools plugin, starting with a step-by-step physics derivation checker"
+    }
+  ]
+}
