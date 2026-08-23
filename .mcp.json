@@ -43,8 +43,8 @@
     },
     "repomix": {
       "type": "stdio",
-      "command": "npx",
-      "args": ["repomix@latest", "--mcp", "--sandbox", "${CLAUDE_PROJECT_DIR}"]
+      "command": "repomix",
+      "args": ["--mcp", "--sandbox", "${CLAUDE_PROJECT_DIR}"]
     },
     "context7": {
       "type": "stdio",
