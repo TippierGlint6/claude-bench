@@ -1,0 +1,45 @@
+# Locally patched from upstream (bcefghj/math-animation-mcp):
+# 1. Moved gradio and pix2text from `dependencies` into their existing (but
+#    previously unused) optional-dependencies groups below. Neither is
+#    imported by the MCP stdio server itself (server.py) -- gradio only
+#    powers the separate --web UI, and pix2text is lazily imported inside one
+#    OCR tool with a graceful fallback if missing. This also fixes a real
+#    build failure: pix2text pulls in pyarrow, which has no prebuilt wheel
+#    yet for this image's Python 3.14.
+# 2. Capped mcp[cli] at <2.0.0. Upstream's unbounded ">=1.0.0" let pip install
+#    mcp 2.0.0, which moved/removed mcp.server.fastmcp.FastMCP and broke
+#    server.py's import at runtime.
+[project]
+name = "math-animation-mcp"
+version = "0.1.0"
+description = "MCP Server for generating 3Blue1Brown-style math teaching animations with Manim"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "manim>=0.18.0",
+    "mcp[cli]>=1.0.0,<2.0.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+ocr = [
+    "pix2text>=1.1",
+]
+web = [
+    "gradio>=4.0.0",
+]
+all = [
+    "math-animation-mcp[ocr,web]",
+]
+
+[project.scripts]
+math-animation-mcp = "math_animation_mcp.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/math_animation_mcp"]

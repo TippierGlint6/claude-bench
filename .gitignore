@@ -5,6 +5,9 @@ Thumbs.db
 # Local, machine-specific Claude settings -- never commit these, they're personal to one machine
 .claude/settings.local.json
 
+# Runtime state written by the manim MCP health-check hook -- regenerated each session
+.claude/manim-health.json
+
 # Secrets and environment variables -- never commit these, they're where API keys/passwords would live
 .env
 .env.local
