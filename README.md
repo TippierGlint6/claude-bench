@@ -31,7 +31,7 @@ Give it a multi-step physics derivation and it checks each step for:
 
 ## MCP servers
 
-An **MCP server** is an outside program Claude can talk to for extra capabilities, beyond what a skill alone can do. This plugin bundles five, all auto-started when the plugin is enabled:
+An **MCP server** is an outside program Claude can talk to for extra capabilities, beyond what a skill alone can do. This plugin bundles nine, all auto-started when the plugin is enabled:
 
 | Server | What it does | Requires at runtime |
 |---|---|---|
@@ -40,6 +40,10 @@ An **MCP server** is an outside program Claude can talk to for extra capabilitie
 | `zotero` | Search your Zotero library, including PDF highlights/annotations | The Zotero desktop app must be running, with **Settings → Advanced → "Allow other applications on this computer to communicate with Zotero"** turned on |
 | `obsidian` | Read, write, and search your Obsidian vault | The Obsidian desktop app must be running, with the **"Local REST API with MCP"** community plugin installed and enabled, its **"Enable Non-encrypted (HTTP) Server"** setting turned on, and an `OBSIDIAN_API_KEY` environment variable set to the API key shown in that plugin's settings (never stored in this repo — see below) |
 | `manim` | Generates 3Blue1Brown-style math/physics animations (`bcefghj/math-animation-mcp`, bundled and patched in `servers/math-animation-mcp/`) | **Docker Desktop** installed and running, plus a one-time image build (see below) — this is the one server that isn't ready immediately after `/plugin install` |
+| `repomix` | Packs an entire codebase into one AI-friendly summary, for fast context on an unfamiliar project | Nothing extra — `npx` fetches it on first use. Sandboxed to `${CLAUDE_PROJECT_DIR}` so its file access can't wander outside whatever project you're actually in |
+| `context7` | Injects current, version-accurate library/framework docs into context, instead of relying on possibly-outdated training data | Nothing extra for the free tier. An optional API key from context7.com raises rate limits, but isn't required |
+| `playwright` | Drives a real browser for end-to-end testing and UI verification, via accessibility snapshots rather than screenshots | Nothing extra — `npx` fetches it on first use |
+| `github` | Browse repos, manage issues/PRs, and check CI status directly | A GitHub personal access token, scoped to just `repo`, set as a `GITHUB_PAT` environment variable (never stored in this repo — see below) |
 
 ### One-time setup: building the `manim` server's Docker image
 
@@ -57,11 +61,14 @@ Rendered animations land in this plugin's persistent data directory (`${CLAUDE_P
 
 ### Secrets: never in this repo
 
-`zotero` needs no credential at all (local-mode only). `obsidian` needs an API key, and it's handled the same way any future server's secret should be: referenced in `.mcp.json` as `${OBSIDIAN_API_KEY}` — an **environment variable expansion** Claude Code resolves at connect time — rather than the literal value ever being written into a committed file. Set it once per machine:
+`zotero` needs no credential at all (local-mode only). `obsidian` and `github` each need an API key/token, and both are handled the same way any future server's secret should be: referenced in `.mcp.json` as `${OBSIDIAN_API_KEY}` / `${GITHUB_PAT}` — **environment variable expansion** Claude Code resolves at connect time — rather than the literal value ever being written into a committed file. Set each once per machine:
 ```powershell
 [Environment]::SetEnvironmentVariable("OBSIDIAN_API_KEY", "your-actual-key", "User")
+[Environment]::SetEnvironmentVariable("GITHUB_PAT", "your-actual-token", "User")
 ```
-Then restart any terminal (including a running `claude` session) before it'll pick up the new value — environment variables are only read when a process starts, not live.
+For the GitHub token: create one at [github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new), scoped to just **`repo`** — no need for `read:packages` or `read:org` for personal use, and narrower scope means less damage if it's ever leaked.
+
+Then restart any terminal (including a running `claude` session) before it'll pick up the new value(s) — environment variables are only read when a process starts, not live.
 
 ## System-level prerequisites
 

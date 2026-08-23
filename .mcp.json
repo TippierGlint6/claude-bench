@@ -40,6 +40,30 @@
         "math-animation-mcp:local",
         "python", "-m", "math_animation_mcp"
       ]
+    },
+    "repomix": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["repomix@latest", "--mcp", "--sandbox", "${CLAUDE_PROJECT_DIR}"]
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@upstash/context7-mcp"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "github": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PAT}",
+        "ghcr.io/github/github-mcp-server"
+      ]
     }
   }
 }
