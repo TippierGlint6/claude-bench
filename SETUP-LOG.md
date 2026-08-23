@@ -2,12 +2,13 @@
 
 Written 2026-08-22, at the end of the session that built this repo from scratch. This is meant to let anyone — including a future Claude Code session with zero memory of that conversation — pick this up cold and know exactly where things stand.
 
-## Status: Phases 0–3 complete
+## Status: Phases 0–3 complete, plus a fourth MCP server added afterward
 
 - **Phase 0** — audited what was already on the machine before installing anything.
 - **Phase 1** — built the smallest possible working marketplace: one plugin, one real skill (`derivation-check`), installed locally and confirmed working.
 - **Phase 2** — added MCP servers one at a time, checking prerequisites before each.
 - **Phase 3** — turned this folder into a git repo and pushed it to GitHub: **https://github.com/TippierGlint6/claude-bench** (public repo, `master` branch).
+- **Post-Phase-3** — added a fourth server, `obsidian`, after Phase 3 was already live and pushed.
 
 ## Repo layout
 
@@ -33,7 +34,7 @@ claude-bench/
 /plugin marketplace add TippierGlint6/claude-bench
 /plugin install claude-bench-plugin@claude-bench
 ```
-Needs `uv` on that machine for the arxiv/sympy servers, and (if you want it live) the Zotero desktop app running with local API enabled.
+Needs `uv` on that machine for the arxiv/sympy servers, and (if you want them live) Zotero running with local API enabled and/or Obsidian running with the "Local REST API with MCP" plugin enabled (plus `OBSIDIAN_API_KEY` set — see the MCP servers table below).
 
 ## MCP servers — what's working, what's not
 
@@ -42,7 +43,8 @@ Needs `uv` on that machine for the arxiv/sympy servers, and (if you want it live
 | `arxiv` | ✅ Working, confirmed connected | Zero extra setup — `uvx` fetches it fresh each run. |
 | `sympy` | ✅ Working, confirmed connected | Source bundled in `servers/sympy-mcp/`, `uv` builds its own isolated env automatically on first run. Skips `einsteinpy`, so GR-specific tensor work isn't available — add it to that folder's `pyproject.toml` dependencies if that's ever needed. Kept despite overlap with the Wolfram connector, since it's local/free and already had a head start; Wolfram is still the better choice for most conversational symbolic-math questions. |
 | `zotero` | ✅ Working, confirmed connected | Needs Zotero desktop **running**, with Settings → Advanced → "Allow other applications on this computer to communicate with Zotero" checked (it already was, at `localhost:23119/api`). If this ever shows disconnected, that's almost certainly just Zotero not being open. |
-| `jupyter-mcp-server` | ❌ Not added — deliberately skipped | Unlike the other three, it doesn't spawn its own process — it connects to a separately-run JupyterLab server over a token-protected URL. That means: (1) two more packages needed in the Jupyter environment (`jupyter-collaboration`, `ipykernel` — not yet installed), (2) a JupyterLab instance the user has to remember to start and keep running, (3) a secret token that can't safely be hardcoded into this repo. Revisit if/when live-notebook execution actually becomes a blocker for something. There's also an "extension mode" (runs inside JupyterLab itself, HTTP-only) that trades the two-process problem for HTTP-only transport — not explored yet. |
+| `obsidian` | ✅ Working, confirmed connected | Added after Phase 3. Uses the **"Local REST API with MCP"** community plugin (by coddingtonbear), which as of a recent version serves MCP directly over HTTP — no separate third-party MCP server package needed, unlike the other three. Connects to `http://127.0.0.1:27123/mcp/`, authenticated via `Authorization: Bearer ${OBSIDIAN_API_KEY}` — the key is read from an environment variable, never committed. **Debugging note for future reference:** the plugin's "Enable Non-encrypted (HTTP) Server" setting did not take effect until Obsidian was fully quit and restarted — if `obsidian` ever shows `ConnectionRefused` on port 27123 again, check that setting and restart Obsidian before assuming anything else is wrong. |
+| `jupyter-mcp-server` | ❌ Not added — deliberately skipped | Unlike the other four, it doesn't spawn its own process — it connects to a separately-run JupyterLab server over a token-protected URL. That means: (1) two more packages needed in the Jupyter environment (`jupyter-collaboration`, `ipykernel` — not yet installed), (2) a JupyterLab instance the user has to remember to start and keep running, (3) a secret token that can't safely be hardcoded into this repo. Revisit if/when live-notebook execution actually becomes a blocker for something. There's also an "extension mode" (runs inside JupyterLab itself, HTTP-only) that trades the two-process problem for HTTP-only transport — not explored yet. Note: `obsidian`'s solution (env-var-based secret, HTTP transport) is a good template to reuse for Jupyter's token if this gets revisited. |
 
 ## What was installed system-wide (not part of this repo)
 

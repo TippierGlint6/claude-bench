@@ -30,15 +30,24 @@ Give it a multi-step physics derivation and it checks each step for:
 
 ## MCP servers
 
-An **MCP server** is an outside program Claude can talk to for extra capabilities, beyond what a skill alone can do. This plugin bundles three, all auto-started when the plugin is enabled:
+An **MCP server** is an outside program Claude can talk to for extra capabilities, beyond what a skill alone can do. This plugin bundles four, all auto-started when the plugin is enabled:
 
 | Server | What it does | Requires at runtime |
 |---|---|---|
 | `arxiv` | Search and read papers from arXiv | Nothing extra — `uvx` fetches it on first use |
 | `sympy` | Symbolic math (algebra, calculus, some GR) | Nothing extra — bundled in `servers/sympy-mcp/`, `uv` builds an isolated environment for it automatically |
 | `zotero` | Search your Zotero library, including PDF highlights/annotations | The Zotero desktop app must be running, with **Settings → Advanced → "Allow other applications on this computer to communicate with Zotero"** turned on |
+| `obsidian` | Read, write, and search your Obsidian vault | The Obsidian desktop app must be running, with the **"Local REST API with MCP"** community plugin installed and enabled, its **"Enable Non-encrypted (HTTP) Server"** setting turned on, and an `OBSIDIAN_API_KEY` environment variable set to the API key shown in that plugin's settings (never stored in this repo — see below) |
 
-**Deliberately not included:** `jupyter-mcp-server`. Unlike the three above, it doesn't spawn its own process — it connects to a JupyterLab server you start and keep running separately, over a token-protected URL. That's meaningfully more moving parts (a background process to remember to start, plus a secret token that can't safely live in this repo), so it's parked for a later phase rather than rushed in.
+**Deliberately not included:** `jupyter-mcp-server`. Unlike the four above, it doesn't spawn its own process — it connects to a JupyterLab server you start and keep running separately, over a token-protected URL. That's meaningfully more moving parts (a background process to remember to start, plus a secret token that can't safely live in this repo), so it's parked for a later phase rather than rushed in.
+
+### Secrets: never in this repo
+
+`zotero` needs no credential at all (local-mode only). `obsidian` needs an API key, and it's handled the same way any future server's secret should be: referenced in `.mcp.json` as `${OBSIDIAN_API_KEY}` — an **environment variable expansion** Claude Code resolves at connect time — rather than the literal value ever being written into a committed file. Set it once per machine:
+```powershell
+[Environment]::SetEnvironmentVariable("OBSIDIAN_API_KEY", "your-actual-key", "User")
+```
+Then restart any terminal (including a running `claude` session) before it'll pick up the new value — environment variables are only read when a process starts, not live.
 
 ## Installing this locally
 
