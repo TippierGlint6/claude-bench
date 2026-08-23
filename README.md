@@ -1,67 +1,101 @@
 # claude-bench
 
-A personal Claude Code plugin marketplace. This repo is both a working plugin and the catalog that describes it, so it can be installed on any machine running Claude Code with two commands.
+A personal Claude Code plugin marketplace covering physics/math study tools and general coding tools. Split into four independently-installable plugins so you only run what you actually need for a given session — see "Why four plugins" below for how this came about.
 
 ## What's in here
 
 ```
 claude-bench/
 ├── .claude-plugin/
-│   ├── marketplace.json   # the catalog: tells Claude Code what plugins this repo offers
-│   └── plugin.json        # the plugin itself: name, version, author
-├── .mcp.json               # MCP servers this plugin provides (auto-discovered, no manifest entry needed)
-├── servers/
-│   ├── sympy-mcp/          # bundled source for the symbolic-math server (so it isn't tied to any one machine)
-│   └── math-animation-mcp/ # bundled + locally-patched source for the manim animation server (runs via Docker)
-├── skills/
-│   └── derivation-check/
-│       └── SKILL.md       # the one skill this plugin currently provides
-├── README.md               # this file
-└── .gitignore               # files that should never be committed (see below)
+│   └── marketplace.json          # the catalog: lists all four plugins and where to find them
+├── plugins/
+│   ├── physics-core/               # default ON — skill + arXiv + symbolic math
+│   │   ├── .claude-plugin/plugin.json
+│   │   ├── .mcp.json
+│   │   ├── servers/sympy-mcp/      # bundled source, so it isn't tied to any one machine
+│   │   └── skills/derivation-check/
+│   ├── knowledge-tools/             # default ON — Zotero + Obsidian
+│   │   ├── .claude-plugin/plugin.json
+│   │   └── .mcp.json
+│   ├── manim-viz/                   # default OFF — Manim animations, via Docker
+│   │   ├── .claude-plugin/plugin.json
+│   │   ├── .mcp.json
+│   │   └── servers/math-animation-mcp/  # bundled + locally-patched source
+│   └── coding-tools/                # default OFF — general software engineering
+│       ├── .claude-plugin/plugin.json
+│       └── .mcp.json
+├── README.md                       # this file
+├── SETUP-LOG.md                     # detailed build history, for cold pickup by a future session
+└── .gitignore                       # files that should never be committed (see below)
 ```
 
-This started as the smallest version that works — one marketplace, one plugin, one skill, no MCP servers — to prove the install loop end to end before adding anything more complicated. It now also carries five MCP servers (see below).
+This started as the smallest version that works — one marketplace, one plugin, one skill, no MCP servers — to prove the install loop end to end. It grew to nine MCP servers in a single plugin, then got split into four plugins once that single-plugin setup made it impossible to turn any one server off without turning all of them off.
 
-## The skill: `derivation-check`
+## The four plugins
 
-Give it a multi-step physics derivation and it checks each step for:
+| Plugin | Contains | Default |
+|---|---|---|
+| `physics-core` | `derivation-check` skill, `arxiv`, `sympy` | **ON** — lightweight, always relevant |
+| `knowledge-tools` | `zotero`, `obsidian` | **ON** — central to the literature/notes workflow this repo exists for |
+| `manim-viz` | `manim` | **OFF** — the heaviest single item (3+ GB Docker image), clearly opt-in |
+| `coding-tools` | `repomix`, `context7`, `playwright`, `github` | **OFF** — general software engineering, not physics-specific |
+
+Toggle any of them per session with `/plugin enable <name>@claude-bench` or `/plugin disable <name>@claude-bench` — no reinstall needed, and no restructuring risk from touching this repo again.
+
+### `physics-core`
+
+**Skill — `derivation-check`.** Give it a multi-step physics derivation and it checks each step for:
 - dimensional consistency (do the units on both sides actually match?)
 - algebraic validity (does each line actually follow from the one before it?)
 - limiting/special-case behavior (does the final result reduce correctly to known cases, e.g. the relativistic result reducing to the classical one as v → 0?)
 
-## MCP servers
-
-An **MCP server** is an outside program Claude can talk to for extra capabilities, beyond what a skill alone can do. This plugin bundles nine, all auto-started when the plugin is enabled:
-
+**Servers:**
 | Server | What it does | Requires at runtime |
 |---|---|---|
 | `arxiv` | Search and read papers from arXiv | Nothing extra — `uvx` fetches it on first use |
-| `sympy` | Symbolic math (algebra, calculus, some GR) | Nothing extra — bundled in `servers/sympy-mcp/`, `uv` builds an isolated environment for it automatically |
+| `sympy` | Symbolic math (algebra, calculus, some GR) | Nothing extra — bundled in `servers/sympy-mcp/`, `uv` builds an isolated environment automatically |
+
+### `knowledge-tools`
+
+| Server | What it does | Requires at runtime |
+|---|---|---|
 | `zotero` | Search your Zotero library, including PDF highlights/annotations | The Zotero desktop app must be running, with **Settings → Advanced → "Allow other applications on this computer to communicate with Zotero"** turned on |
-| `obsidian` | Read, write, and search your Obsidian vault | The Obsidian desktop app must be running, with the **"Local REST API with MCP"** community plugin installed and enabled, its **"Enable Non-encrypted (HTTP) Server"** setting turned on, and an `OBSIDIAN_API_KEY` environment variable set to the API key shown in that plugin's settings (never stored in this repo — see below) |
-| `manim` | Generates 3Blue1Brown-style math/physics animations (`bcefghj/math-animation-mcp`, bundled and patched in `servers/math-animation-mcp/`) | **Docker Desktop** installed and running, plus a one-time image build (see below) — this is the one server that isn't ready immediately after `/plugin install` |
-| `repomix` | Packs an entire codebase into one AI-friendly summary, for fast context on an unfamiliar project | Nothing extra — `npx` fetches it on first use. Sandboxed to `${CLAUDE_PROJECT_DIR}` so its file access can't wander outside whatever project you're actually in |
-| `context7` | Injects current, version-accurate library/framework docs into context, instead of relying on possibly-outdated training data | Nothing extra for the free tier. An optional API key from context7.com raises rate limits, but isn't required |
-| `playwright` | Drives a real browser for end-to-end testing and UI verification, via accessibility snapshots rather than screenshots | Nothing extra — `npx` fetches it on first use |
-| `github` | Browse repos, manage issues/PRs, and check CI status directly | A GitHub personal access token, scoped to just `repo`, set as a `GITHUB_PAT` environment variable (never stored in this repo — see below) |
+| `obsidian` | Read, write, and search your Obsidian vault | The Obsidian desktop app must be running, with the **"Local REST API with MCP"** community plugin installed and enabled, its **"Enable Non-encrypted (HTTP) Server"** setting turned on, and an `OBSIDIAN_API_KEY` environment variable set (never stored in this repo — see Secrets below) |
 
-### One-time setup: building the `manim` server's Docker image
+### `manim-viz`
 
-This server runs inside a container rather than as a plain subprocess, since Manim's own dependencies (FFmpeg, a full LaTeX distribution, Cairo, Pango, CJK fonts) are heavy enough that bundling them in a container beats installing each one on the host directly. Docker doesn't build that image automatically on `/plugin install` — run this once per machine, standing anywhere:
+| Server | What it does | Requires at runtime |
+|---|---|---|
+| `manim` | Generates 3Blue1Brown-style math/physics animations (`bcefghj/math-animation-mcp`, bundled and patched in `servers/math-animation-mcp/`) | **Docker Desktop** installed and running, plus a one-time image build (see below) |
+
+**One-time setup: building the Docker image.** This server runs inside a container rather than as a plain subprocess, since Manim's own dependencies (FFmpeg, a full LaTeX distribution, Cairo, Pango, CJK fonts) are heavy enough that bundling them beats installing each one on the host directly. Docker doesn't build that image automatically on `/plugin install` — run this once per machine, standing anywhere:
 ```powershell
-docker build -t math-animation-mcp:local "<path-to-your-claude-bench-checkout>\servers\math-animation-mcp"
+docker build -t math-animation-mcp:local "<path-to-your-claude-bench-checkout>\plugins\manim-viz\servers\math-animation-mcp"
 ```
 Rendered animations land in this plugin's persistent data directory (`${CLAUDE_PLUGIN_DATA}/manim-output`), which survives plugin updates.
 
-> **⚠ Cold-start warning:** each `manim` tool call runs `docker run --rm`, which starts a fresh container from scratch — there's no long-running server to stay warm. If no `math-animation-mcp:local` container has run recently, the first call after a while can take several seconds (~2.5s observed on this machine) purely for Docker to cold-start it, on top of however long the actual render takes. That's slow enough to risk a client-side timeout or just look like a stuck call. If a `manim` call ever seems to hang right at the start, this is the most likely reason — give it a few extra seconds before assuming something's broken. (This machine also has a local, machine-only hook — `.claude/hooks/manim-health-check.sh`, not part of the distributed plugin — that checks for a warm container before each call and asks for confirmation if a cold-start looks likely.)
+> **⚠ Cold-start warning:** each `manim` tool call runs `docker run --rm`, which starts a fresh container from scratch — there's no long-running server to stay warm. Measured cold-start is ~0.8s on this machine, on top of however long the actual render takes. If a `manim` call ever seems to hang right at the start, this is the most likely reason. (This machine also has a local, machine-only hook — `.claude/hooks/manim-health-check.sh`, not part of the distributed plugin — that checks for a warm container before each call.)
 
-**Two upstream bugs already patched in this bundled copy** (see the comment at the top of `servers/math-animation-mcp/pyproject.toml` for full detail): the original `pyproject.toml` required `gradio` and `pix2text` unconditionally even though the MCP server itself never imports either (only the separate, unused `--web` UI and one OCR tool do) — `pix2text` also pulled in `pyarrow`, which fails to build from source on this image's Python 3.14. And `mcp[cli]>=1.0.0` had no upper bound, so pip could install a breaking `mcp` 2.0.0 that moved `mcp.server.fastmcp.FastMCP`. Both are fixed locally; if you ever re-pull fresh upstream source instead of this bundled copy, re-apply both fixes first.
+**Two upstream bugs already patched in this bundled copy** (see the comment at the top of `plugins/manim-viz/servers/math-animation-mcp/pyproject.toml` for full detail): the original `pyproject.toml` required `gradio` and `pix2text` unconditionally even though the MCP server itself never imports either — `pix2text` also pulled in `pyarrow`, which fails to build from source on this image's Python 3.14. And `mcp[cli]>=1.0.0` had no upper bound, so pip could install a breaking `mcp` 2.0.0 that moved `mcp.server.fastmcp.FastMCP`. Both are fixed locally; if you ever re-pull fresh upstream source, re-apply both fixes first.
 
-**Deliberately not included:** `jupyter-mcp-server`. Unlike the four above, it doesn't spawn its own process — it connects to a JupyterLab server you start and keep running separately, over a token-protected URL. That's meaningfully more moving parts (a background process to remember to start, plus a secret token that can't safely live in this repo), so it's parked for a later phase rather than rushed in.
+**Note on image size:** `math-animation-mcp:local` is ~3.16 GB, almost entirely the Manim base image plus a full LaTeX distribution and CJK fonts. Inherent to what it bundles, not a mistake — but worth knowing if disk space is tight. `docker builder prune -f` reclaims stale build-cache layers left over from iterating on the Dockerfile, if that ever piles up again.
 
-### Secrets: never in this repo
+### `coding-tools`
 
-`zotero` needs no credential at all (local-mode only). `obsidian` and `github` each need an API key/token, and both are handled the same way any future server's secret should be: referenced in `.mcp.json` as `${OBSIDIAN_API_KEY}` / `${GITHUB_PAT}` — **environment variable expansion** Claude Code resolves at connect time — rather than the literal value ever being written into a committed file. Set each once per machine:
+Not physics-specific — general software engineering tools.
+
+| Server | What it does | Requires at runtime |
+|---|---|---|
+| `repomix` | Packs an entire codebase into one AI-friendly summary, for fast context on an unfamiliar project | **`repomix` installed globally** (`npm install -g repomix`) — runs the installed command directly rather than fetching via `npx` each time, for faster startup (~1.1s vs ~2-2.6s measured). Sandboxed to `${CLAUDE_PROJECT_DIR}` so its file access can't wander outside whatever project you're actually in |
+| `context7` | Injects current, version-accurate library/framework docs into context | Nothing extra for the free tier. An optional API key from context7.com raises rate limits, but isn't required |
+| `playwright` | Drives a real browser for end-to-end testing and UI verification, via accessibility snapshots rather than screenshots | Nothing extra — `npx` fetches it on first use |
+| `github` | Browse repos, manage issues/PRs, and check CI status directly | A GitHub personal access token, scoped to just `repo`, set as a `GITHUB_PAT` environment variable (never stored in this repo — see Secrets below). Runs via Docker (`ghcr.io/github/github-mcp-server`, a small ~66 MB published image, no local build needed unlike `manim`) |
+
+**Deliberately not included anywhere:** `jupyter-mcp-server`. Unlike the servers above, it doesn't spawn its own process — it connects to a JupyterLab server you start and keep running separately, over a token-protected URL. That's meaningfully more moving parts (a background process to remember to start, plus a secret token), so it's parked for later.
+
+## Secrets: never in this repo
+
+`zotero` needs no credential at all (local-mode only). `obsidian` and `github` each need an API key/token, referenced in their `.mcp.json` as `${OBSIDIAN_API_KEY}` / `${GITHUB_PAT}` — **environment variable expansion** Claude Code resolves at connect time — rather than the literal value ever being written into a committed file. Set each once per machine:
 ```powershell
 [Environment]::SetEnvironmentVariable("OBSIDIAN_API_KEY", "your-actual-key", "User")
 [Environment]::SetEnvironmentVariable("GITHUB_PAT", "your-actual-token", "User")
@@ -72,9 +106,9 @@ Then restart any terminal (including a running `claude` session) before it'll pi
 
 ## System-level prerequisites
 
-Programs installed on the host machine itself, outside this repo, that some servers above depend on. **None of these get installed automatically by `/plugin install`** — Claude Code manages this plugin's own files, not your operating system, so each needs to be installed once per machine before its matching server will connect.
+Programs installed on the host machine itself, outside this repo, that some servers depend on. **None of these get installed automatically by `/plugin install`.**
 
-**Docker Desktop** — required for `manim` (bundles Manim's heavy dependencies — FFmpeg, a full LaTeX distribution, Cairo, Pango, CJK fonts — inside a container instead of installing each one on the host directly).
+**Docker Desktop** — required for `manim-viz` and `coding-tools`' `github` server.
 ```powershell
 winget install -e --id Docker.DockerDesktop
 ```
@@ -86,19 +120,24 @@ wsl --install
 ```
 Note if you also run VMware or another hypervisor: WSL2 and those can conflict over Windows' Hyper-V virtualization layer on some version combinations — worth confirming your other VMs still start after installing this.
 
-**Zotero** — required for the `zotero` server (reference library and PDF-highlight search).
+**repomix** — required for `coding-tools`.
+```powershell
+npm install -g repomix
+```
+
+**Zotero** — required for `knowledge-tools`.
 ```powershell
 winget install -e --id DigitalScholar.Zotero
 ```
 After installing: open it once, then go to Settings → Advanced and check **"Allow other applications on this computer to communicate with Zotero."**
 
-**Obsidian** — required for the `obsidian` server (notes vault read/write/search).
+**Obsidian** — required for `knowledge-tools`.
 ```powershell
 winget install -e --id Obsidian.Obsidian
 ```
 After installing: inside Obsidian, go to Settings → Community plugins → Browse, install and enable **"Local REST API with MCP"** (by Adam Coddington), then turn on its **"Enable Non-encrypted (HTTP) Server"** setting and set `OBSIDIAN_API_KEY` per the Secrets section above.
 
-**JupyterLab** — not wired into an MCP server in this repo yet (see `jupyter-mcp-server` above for why), but installed alongside this toolkit for future live-notebook work. It's a Python package rather than a downloadable installer:
+**JupyterLab** — not wired into an MCP server in this repo, but installed alongside this toolkit for future live-notebook work. It's a Python package rather than a downloadable installer:
 ```powershell
 py -m venv jupyter-env
 jupyter-env\Scripts\pip.exe install jupyterlab
@@ -107,55 +146,51 @@ Launch it later with `jupyter-env\Scripts\jupyter-lab.exe`.
 
 ## Installing this
 
-On a **new machine**, this repo is hosted at **https://github.com/TippierGlint6/claude-bench** (public, no login needed) — install it there with just:
+On a **new machine**, this repo is hosted at **https://github.com/TippierGlint6/claude-bench** (public, no login needed):
 ```
 /plugin marketplace add TippierGlint6/claude-bench
-/plugin install claude-bench-plugin@claude-bench
+/plugin install physics-core@claude-bench
+/plugin install knowledge-tools@claude-bench
 ```
-No local checkout required first. The steps below are for installing from a local copy of this folder instead (what this repo's own history was built and tested against).
+`manim-viz` and `coding-tools` are opt-in — install them the same way whenever you actually want them:
+```
+/plugin install manim-viz@claude-bench
+/plugin install coding-tools@claude-bench
+```
 
-Run these from a terminal, standing in the folder that *contains* `claude-bench` (i.e. one level above it, not inside it).
-
-Start Claude Code, if it isn't already running:
+For a local checkout instead of GitHub, run these from a terminal standing in the folder that *contains* `claude-bench` (one level above it):
 ```bash
 claude
 ```
-
-Register this folder as a plugin marketplace Claude Code knows about:
 ```
 /plugin marketplace add ./claude-bench
+/plugin install physics-core@claude-bench
 ```
+(and so on for the others, same names as above).
 
-Install the one plugin this marketplace offers:
-```
-/plugin install claude-bench-plugin@claude-bench
-```
-
-If the install summary tells you to run `/reload-plugins`, do that next so the skill actually activates in your current session:
-```
-/reload-plugins
-```
+If the install summary tells you to run `/reload-plugins`, do that next so a newly-installed skill actually activates in your current session.
 
 ## Confirming it worked
 
-Ask Claude something like *"check this derivation"* and paste a short multi-step physics derivation. If the skill loaded, Claude will work through it step by step, checking units and limiting cases explicitly, rather than just giving a general opinion on whether it looks right.
+Ask Claude something like *"check this derivation"* and paste a short multi-step physics derivation. If `physics-core`'s skill loaded, Claude will work through it step by step, checking units and limiting cases explicitly, rather than just giving a general opinion on whether it looks right.
 
 You can also check installation status directly:
 ```
 /plugin
 ```
-This opens the plugin manager view — `claude-bench-plugin` should be listed as installed and enabled.
+This opens the plugin manager view — each installed plugin should be listed with its enabled/disabled state.
 
-## Why the files are structured this way
+## Why four plugins
 
-- **One shared `.claude-plugin/` folder** holds both `marketplace.json` and `plugin.json` because this marketplace's one plugin uses `"source": "./"` — meaning the plugin *is* the marketplace root, so both manifest files naturally live in the same place. A marketplace with several plugins would instead put each plugin's `plugin.json` inside that plugin's own subfolder.
-- **`skills/derivation-check/`** is Claude Code's default location for skills — no extra configuration in `plugin.json` was needed to make it discoverable.
+Claude Code doesn't support enabling or disabling individual MCP servers within a plugin — the docs are explicit that servers "start automatically when the plugin is enabled," all or nothing. With everything in one plugin, `manim` (a 3+ GB Docker container) and `github` (Docker again) always spun up alongside lightweight things like `arxiv`, whether or not that session actually needed them. Splitting into four separate plugins, each with its own `plugin.json` and `.mcp.json`, makes the heavy/situational ones (`manim-viz`, `coding-tools`) genuinely opt-in via `/plugin enable`/`/plugin disable`, while the lightweight always-useful ones (`physics-core`, `knowledge-tools`) stay on by default.
+
+This is a separate concern from **tool search** — Claude Code's default behavior of deferring MCP tool *schemas* until actually needed, regardless of how many servers are connected. Tool search already keeps context-window cost low; this plugin split is about not *connecting* servers (and paying their startup/runtime cost) unless you actually want them that session.
 
 ## What's deliberately not here yet
 
-- `jupyter-mcp-server` (see MCP servers section above for why)
-- No other skills — one is enough to prove the install loop works
+- `jupyter-mcp-server` (see `coding-tools` section above for why)
+- No other skills beyond `derivation-check`
 
 ## Portability
 
-Nothing in this repo hardcodes a machine-specific path. If a future skill or hook needs to reference its own plugin folder, it should use the `${CLAUDE_PLUGIN_ROOT}` environment variable (which Claude Code fills in automatically at install time) rather than a hardcoded path, so this keeps working unchanged on Windows, macOS, or Linux.
+Nothing in this repo hardcodes a machine-specific path. Every `${CLAUDE_PLUGIN_ROOT}` reference resolves to that specific plugin's own installation directory (not the marketplace root), and `${CLAUDE_PLUGIN_DATA}` to that plugin's persistent data directory — both filled in automatically by Claude Code, so this keeps working unchanged on Windows, macOS, or Linux, and unchanged if plugins get reordered or renamed later.

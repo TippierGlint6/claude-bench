@@ -1,0 +1,9 @@
+{
+  "name": "coding-tools",
+  "displayName": "Coding Tools",
+  "description": "General-purpose software engineering tools: codebase context, docs, browser testing, and GitHub",
+  "version": "1.0.0",
+  "author": {
+    "name": "Riley"
+  }
+}

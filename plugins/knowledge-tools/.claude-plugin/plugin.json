@@ -1,0 +1,9 @@
+{
+  "name": "knowledge-tools",
+  "displayName": "Knowledge Tools",
+  "description": "Personal library and notes integration: Zotero and Obsidian",
+  "version": "1.0.0",
+  "author": {
+    "name": "Riley"
+  }
+}

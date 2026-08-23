@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "arxiv": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["arxiv-mcp-server"]
+    },
+    "sympy": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}/servers/sympy-mcp",
+        "python",
+        "server.py"
+      ]
+    }
+  }
+}

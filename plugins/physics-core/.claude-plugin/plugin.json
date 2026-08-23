@@ -1,0 +1,9 @@
+{
+  "name": "physics-core",
+  "displayName": "Physics Core",
+  "description": "Core physics study tools: derivation checking, arXiv search, and symbolic math",
+  "version": "1.0.0",
+  "author": {
+    "name": "Riley"
+  }
+}

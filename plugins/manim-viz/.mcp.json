@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "manim": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-v", "${CLAUDE_PLUGIN_DATA}/manim-output:/app/animation_output",
+        "math-animation-mcp:local",
+        "python", "-m", "math_animation_mcp"
+      ]
+    }
+  }
+}

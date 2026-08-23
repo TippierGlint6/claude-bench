@@ -6,9 +6,28 @@
   "description": "Personal collection of Claude Code plugins for physics study and research tooling",
   "plugins": [
     {
-      "name": "claude-bench-plugin",
-      "source": "./",
-      "description": "Study tools plugin, starting with a step-by-step physics derivation checker"
+      "name": "physics-core",
+      "source": "./plugins/physics-core",
+      "description": "Core physics study tools: derivation checking, arXiv search, and symbolic math",
+      "defaultEnabled": true
+    },
+    {
+      "name": "knowledge-tools",
+      "source": "./plugins/knowledge-tools",
+      "description": "Personal library and notes integration: Zotero and Obsidian",
+      "defaultEnabled": true
+    },
+    {
+      "name": "manim-viz",
+      "source": "./plugins/manim-viz",
+      "description": "3Blue1Brown-style math and physics animations, via Docker",
+      "defaultEnabled": false
+    },
+    {
+      "name": "coding-tools",
+      "source": "./plugins/coding-tools",
+      "description": "General-purpose software engineering tools, not physics-specific",
+      "defaultEnabled": false
     }
   ]
 }

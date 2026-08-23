@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "zotero": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["zotero-mcp"],
+      "env": {
+        "ZOTERO_LOCAL": "true"
+      }
+    },
+    "obsidian": {
+      "type": "http",
+      "url": "http://127.0.0.1:27123/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${OBSIDIAN_API_KEY}"
+      }
+    }
+  }
+}

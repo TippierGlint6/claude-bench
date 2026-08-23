@@ -1,0 +1,9 @@
+{
+  "name": "manim-viz",
+  "displayName": "Manim Visualization",
+  "description": "3Blue1Brown-style math and physics animations, via Docker",
+  "version": "1.0.0",
+  "author": {
+    "name": "Riley"
+  }
+}
